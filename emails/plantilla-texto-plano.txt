@@ -1,0 +1,34 @@
+EL MARCADOR · SEMANA [X]
+[fecha inicio]–[fecha fin]
+
+Recap semanal de LinkedIn del equipo. No es evaluación de desempeño, es para ver qué funciona y llegar al lunes con algo mejor.
+
+MVP DE LA SEMANA
+[Nombre] · ER [X.X%] sobre [alcance] impresiones
+Post sobre "[tema]"
+
+RANKING (solo perfiles con 100+ impresiones esta semana)
+1. [Nombre] — [X.X%]
+2. [Nombre] — [X.X%]
+3. [Nombre] — [X.X%]
+4. [Nombre] — [X.X%]
+5. [Nombre] — [X.X%]
+
+Cogiendo impulso (menos de 100 impresiones, sin ranking competitivo): [Nombre], [Nombre]
+
+QUÉ FUNCIONÓ
+[Idea concreta sobre el post o patrón que mejor funcionó esta semana]
+
+TIP PARA EL LUNES
+[Acción concreta para la semana que viene]
+
+Manda tu ER del jueves o viernes.
+
+Un abrazo,
+Marketing · Zebra Ventures
+
+---
+NOTAS DE USO (borrar antes de enviar):
+- Umbral de 100 impresiones para entrar al ranking competitivo. Ajustable si el volumen real de reach es distinto.
+- "Cogiendo impulso" nunca lleva tono negativo ni se compara directamente con el ranking.
+- El MVP se calcula solo entre perfiles que superan el umbral.
