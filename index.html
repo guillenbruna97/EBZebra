@@ -139,6 +139,18 @@
     margin-bottom: 28px;
   }
 
+  .ranking-col-secondary {
+    background-color: var(--row-bg);
+    border: 1px solid var(--silver);
+    border-radius: 12px;
+    padding: 20px 24px;
+  }
+
+  .ranking-col-secondary h2 {
+    font-family: 'Red Hat Text', Arial, sans-serif;
+    color: var(--silver);
+  }
+
   .ranking-table {
     width: 100%;
     border-collapse: collapse;
@@ -150,6 +162,14 @@
   }
 
   .ranking-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .ranking-table-secondary tr {
+    border-bottom: 1px solid var(--silver);
+  }
+
+  .ranking-table-secondary tr:last-child {
     border-bottom: none;
   }
 
@@ -316,7 +336,7 @@
       </table>
     </div>
 
-    <div class="ranking-col">
+    <div class="ranking-col ranking-col-secondary">
       <h2>Interacciones totales</h2>
       <p class="ranking-note ranking-note-secondary">Informativo, no cuenta para el MVP</p>
 
