@@ -14,7 +14,7 @@ Recap semanal interno de actividad en LinkedIn del equipo Zebra Ventures. Genera
    - `[Nombre]`, `[X.X%]`, `[alcance]`, `[tema del post]` por los datos reales de la semana.
    - `[fecha inicio]–[fecha fin]` por el rango de fechas.
    - Los `src` de los avatares en la card MVP y en cada fila del ranking, por el archivo correspondiente en `assets/avatars/`.
-2. Rellena "Qué funcionó" y "Tip para el lunes" con contenido concreto, no genérico.
+2. Rellena "Qué funcionó" y "Tip para los siguientes" con contenido concreto, no genérico.
 3. Haz commit y push a `main`. GitHub Pages redeploya automáticamente en 1-2 minutos.
 4. Redacta tú el email o mensaje de Slack avisando de la actualización, con el link a la landing (ver "Publicar en GitHub Pages" más abajo).
 
