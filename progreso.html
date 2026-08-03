@@ -93,9 +93,91 @@
     padding: 40px 0;
   }
 
+  h2 {
+    font-family: 'Red Hat Display', Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+  }
+
+  .mvp-wall {
+    margin-top: 8px;
+  }
+
+  .mvp-wall-card {
+    display: flex;
+    gap: 16px;
+    background-color: var(--row-bg);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+
+  .mvp-wall-card:last-child {
+    margin-bottom: 0;
+  }
+
+  .mvp-wall-avatar {
+    display: block;
+    height: 56px;
+    width: auto;
+    flex-shrink: 0;
+  }
+
+  .mvp-wall-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .mvp-wall-tag {
+    display: inline-block;
+    background-color: var(--yellow);
+    color: var(--ink);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+
+  .mvp-wall-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+
+  .mvp-wall-name {
+    font-family: 'Red Hat Display', Arial, sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+  }
+
+  .mvp-wall-date {
+    font-size: 12px;
+    color: var(--silver);
+    white-space: nowrap;
+  }
+
+  .mvp-wall-reason {
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   @media (max-width: 480px) {
     h1 { font-size: 28px; }
     .chart-wrap { height: 320px; }
+    .mvp-wall-card { gap: 12px; padding: 14px 16px; }
+    .mvp-wall-avatar { height: 44px; }
   }
 </style>
 </head>
@@ -118,6 +200,12 @@
     </div>
     <p id="empty-state" class="empty-state" style="display:none;">Todavía no hay datos suficientes para dibujar la evolución.</p>
   </div>
+
+  <h2>Muro de MVPs</h2>
+  <p class="chart-note">Se lee directamente de <code>assets/data/historico-mvp.csv</code>. Cada semana se añade aquí quién fue el MVP y por qué; el muro crece solo.</p>
+
+  <div id="mvp-wall" class="mvp-wall"></div>
+  <p id="mvp-wall-empty" class="empty-state" style="display:none;">Todavía no hay MVPs registrados.</p>
 
 </div>
 
@@ -155,6 +243,58 @@
   function formateaFecha(fechaISO) {
     var partes = fechaISO.split('-');
     return partes[2] + '/' + partes[1];
+  }
+
+  // Slug de archivo por perfil (assets/siluetas/cintura-<slug>.png). Perfiles nuevos caen
+  // al fallback: primer nombre en minúsculas sin acentos, mismo criterio que el resto.
+  var SLUG_PERFIL = {
+    'Sergio Martínez':     'sergio',
+    'Ulises Gómez':        'ulises',
+    'Pablo Romeo':         'pablo',
+    'María José Cantaré':  'mariajo',
+    'José María Martínez': 'jose',
+    'Beatriz Alcalá':      'bea',
+    'Mónica Berges':       'monica',
+    'Dani':                'dani',
+    'Sonia':               'sonia'
+  };
+
+  function slugPara(perfil) {
+    if (SLUG_PERFIL[perfil]) return SLUG_PERFIL[perfil];
+    return perfil.split(' ')[0].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+
+  var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+  function formateaFechaLarga(fechaISO) {
+    var partes = fechaISO.split('-');
+    var dia = parseInt(partes[2], 10);
+    var mes = MESES[parseInt(partes[1], 10) - 1];
+    return dia + ' de ' + mes + ' de ' + partes[0];
+  }
+
+  // Parser CSV con soporte de campos entre comillas (el motivo del MVP lleva comas).
+  function parseCSVLine(linea) {
+    var campos = [];
+    var actual = '';
+    var entreComillas = false;
+    for (var i = 0; i < linea.length; i++) {
+      var c = linea[i];
+      if (entreComillas) {
+        if (c === '"') {
+          if (linea[i + 1] === '"') { actual += '"'; i++; }
+          else { entreComillas = false; }
+        } else {
+          actual += c;
+        }
+      } else {
+        if (c === '"') { entreComillas = true; }
+        else if (c === ',') { campos.push(actual); actual = ''; }
+        else { actual += c; }
+      }
+    }
+    campos.push(actual);
+    return campos;
   }
 
   fetch('assets/data/historico-seguidores.csv')
@@ -234,6 +374,74 @@
     .catch(function (err) {
       console.error('No se pudo cargar el histórico de seguidores', err);
       document.getElementById('empty-state').style.display = 'block';
+    });
+
+  fetch('assets/data/historico-mvp.csv')
+    .then(function (res) { return res.text(); })
+    .then(function (texto) {
+      var lineas = texto.trim().split('\n').filter(function (l) { return l.trim().length > 0; });
+      var filas = lineas.slice(1).map(function (linea) {
+        var campos = parseCSVLine(linea);
+        return { fecha: campos[0].trim(), perfil: campos[1].trim(), motivo: campos[2].trim() };
+      });
+
+      if (filas.length === 0) {
+        document.getElementById('mvp-wall-empty').style.display = 'block';
+        return;
+      }
+
+      filas.sort(function (a, b) {
+        if (a.fecha === b.fecha) return 0;
+        return a.fecha < b.fecha ? 1 : -1;
+      });
+
+      var contenedor = document.getElementById('mvp-wall');
+
+      filas.forEach(function (f) {
+        var card = document.createElement('div');
+        card.className = 'mvp-wall-card';
+
+        var img = document.createElement('img');
+        img.className = 'mvp-wall-avatar';
+        img.src = 'assets/siluetas/cintura-' + slugPara(f.perfil) + '.png';
+        img.alt = f.perfil;
+
+        var body = document.createElement('div');
+        body.className = 'mvp-wall-body';
+
+        var tag = document.createElement('span');
+        tag.className = 'mvp-wall-tag';
+        tag.textContent = 'MVP de la semana';
+
+        var head = document.createElement('div');
+        head.className = 'mvp-wall-head';
+
+        var name = document.createElement('span');
+        name.className = 'mvp-wall-name';
+        name.textContent = f.perfil;
+
+        var date = document.createElement('span');
+        date.className = 'mvp-wall-date';
+        date.textContent = formateaFechaLarga(f.fecha);
+
+        head.appendChild(name);
+        head.appendChild(date);
+
+        var reason = document.createElement('p');
+        reason.className = 'mvp-wall-reason';
+        reason.textContent = f.motivo;
+
+        body.appendChild(tag);
+        body.appendChild(head);
+        body.appendChild(reason);
+        card.appendChild(img);
+        card.appendChild(body);
+        contenedor.appendChild(card);
+      });
+    })
+    .catch(function (err) {
+      console.error('No se pudo cargar el histórico de MVPs', err);
+      document.getElementById('mvp-wall-empty').style.display = 'block';
     });
 </script>
 
