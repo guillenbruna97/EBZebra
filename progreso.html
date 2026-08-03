@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>El Marcador · Progreso · Zebra Ventures</title>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@700;900&family=Red+Hat+Text:wght@400;700&display=swap');
+
+  :root {
+    --yellow: #FFD546;
+    --yellow-soft: #FFE48A;
+    --ink: #1A1A22;
+    --cream: #FFFCF5;
+    --silver: #848C99;
+    --row-bg: #F5F3ED;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background-color: var(--cream);
+    font-family: 'Red Hat Text', Arial, sans-serif;
+    color: var(--ink);
+  }
+
+  .accent-bar {
+    height: 6px;
+    background-color: var(--yellow);
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 36px 24px 48px 24px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--silver);
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-family: 'Red Hat Display', Arial, sans-serif;
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    margin: 8px 0 4px 0;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    margin: 0 0 24px 0;
+  }
+
+  .back-link {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 2px solid var(--yellow);
+    margin-bottom: 24px;
+  }
+
+  .chart-card {
+    background-color: var(--row-bg);
+    border-radius: 16px;
+    padding: 24px 20px;
+    margin-bottom: 24px;
+  }
+
+  .chart-note {
+    font-size: 12px;
+    color: var(--silver);
+    margin: 0 0 16px 0;
+  }
+
+  .chart-wrap {
+    position: relative;
+    height: 380px;
+  }
+
+  .empty-state {
+    font-size: 14px;
+    color: var(--silver);
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 28px; }
+    .chart-wrap { height: 320px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="accent-bar"></div>
+
+<div class="wrap">
+
+  <span class="eyebrow">Zebra Ventures · Employer Branding</span>
+  <h1>Progreso</h1>
+  <p class="subtitle">Evolución de seguidores por perfil, semana a semana.</p>
+
+  <a class="back-link" href="index.html">&larr; Volver a El Marcador</a>
+
+  <div class="chart-card">
+    <p class="chart-note">Se lee directamente de <code>assets/data/historico-seguidores.csv</code>. Cada actualización semanal añade una fila nueva por persona; el gráfico crece solo.</p>
+    <div class="chart-wrap">
+      <canvas id="chart-seguidores"></canvas>
+    </div>
+    <p id="empty-state" class="empty-state" style="display:none;">Todavía no hay datos suficientes para dibujar la evolución.</p>
+  </div>
+
+</div>
+
+<div class="accent-bar"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+  // Colores fijos por perfil (paleta categórica, orden estable aunque se sume gente nueva al CSV).
+  var COLORES_PERFIL = {
+    'Sergio Martínez':       '#2a78d6',
+    'Ulises Gómez':          '#eb6834',
+    'Pablo Romeo':           '#1baf7a',
+    'María José Cantaré':    '#eda100',
+    'José María Martínez':   '#e87ba4',
+    'Beatriz Alcalá':        '#008300',
+    'Dani':                  '#4a3aa7',
+    'Sonia':                 '#e34948'
+  };
+  var PALETA_RESERVA = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
+
+  function colorPara(perfil, indiceNuevo) {
+    if (COLORES_PERFIL[perfil]) return COLORES_PERFIL[perfil];
+    return PALETA_RESERVA[indiceNuevo % PALETA_RESERVA.length];
+  }
+
+  function parseCSV(texto) {
+    var lineas = texto.trim().split('\n').filter(function (l) { return l.trim().length > 0; });
+    var filas = lineas.slice(1).map(function (linea) {
+      var campos = linea.split(',');
+      return { perfil: campos[0].trim(), fecha: campos[1].trim(), seguidores: Number(campos[2]) };
+    });
+    return filas;
+  }
+
+  function formateaFecha(fechaISO) {
+    var partes = fechaISO.split('-');
+    return partes[2] + '/' + partes[1];
+  }
+
+  fetch('assets/data/historico-seguidores.csv')
+    .then(function (res) { return res.text(); })
+    .then(function (texto) {
+      var filas = parseCSV(texto);
+      if (filas.length === 0) {
+        document.getElementById('empty-state').style.display = 'block';
+        return;
+      }
+
+      var fechas = Array.from(new Set(filas.map(function (f) { return f.fecha; }))).sort();
+
+      var porPerfil = {};
+      var ordenPerfiles = [];
+      filas.forEach(function (f) {
+        if (!porPerfil[f.perfil]) {
+          porPerfil[f.perfil] = {};
+          ordenPerfiles.push(f.perfil);
+        }
+        porPerfil[f.perfil][f.fecha] = f.seguidores;
+      });
+
+      var datasets = ordenPerfiles.map(function (perfil, i) {
+        var color = colorPara(perfil, i);
+        return {
+          label: perfil,
+          data: fechas.map(function (fecha) {
+            return porPerfil[perfil][fecha] !== undefined ? porPerfil[perfil][fecha] : null;
+          }),
+          spanGaps: true,
+          borderColor: color,
+          backgroundColor: color,
+          borderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          tension: 0.25
+        };
+      });
+
+      var ctx = document.getElementById('chart-seguidores').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: fechas.map(formateaFecha),
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#1A1A22', font: { family: "'Red Hat Text', Arial, sans-serif", size: 12 } }
+            },
+            tooltip: {
+              backgroundColor: '#1A1A22',
+              titleFont: { family: "'Red Hat Display', Arial, sans-serif" },
+              bodyFont: { family: "'Red Hat Text', Arial, sans-serif" }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: '#E7E4DA' },
+              ticks: { color: '#848C99', font: { size: 11 } }
+            },
+            y: {
+              beginAtZero: false,
+              grid: { color: '#E7E4DA' },
+              ticks: { color: '#848C99', font: { size: 11 } }
+            }
+          }
+        }
+      });
+    })
+    .catch(function (err) {
+      console.error('No se pudo cargar el histórico de seguidores', err);
+      document.getElementById('empty-state').style.display = 'block';
+    });
+</script>
+
+</body>
+</html>

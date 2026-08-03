@@ -5,18 +5,22 @@ Recap semanal interno de actividad en LinkedIn del equipo Zebra Ventures. Genera
 ## Qué hay en este repo
 
 - `index.html` — landing del ranking semanal, publicada vía GitHub Pages. Se edita cada semana con los datos nuevos y se sube; la URL es siempre la misma.
+- `progreso.html` — página aparte con la evolución de seguidores por perfil a lo largo del tiempo (gráfica de líneas con Chart.js). Lee `assets/data/historico-seguidores.csv` en tiempo real vía `fetch`, así que crece sola cada semana sin tocar código.
 - `assets/avatars/` — avatares circulares con anillo de marca (Zebra Yellow `#FFD546`) de los 8 perfiles, referenciados directamente desde `index.html`.
-- `assets/historico-seguidores.csv` — snapshot de seguidores por perfil en cada fecha de captura, base para el denominador del ER y para trackear crecimiento en el tiempo.
+- `assets/data/historico-seguidores.csv` — una fila nueva por perfil cada semana (`perfil,fecha,seguidores`). Nunca se sobrescriben filas anteriores, solo se añaden. Es la fuente de la gráfica de `progreso.html` y del denominador del ER.
+- `assets/data/historico-ranking.csv` — una fila por perfil que entró al ranking competitivo esa semana (`perfil,fecha,interacciones,seguidores,er,mvp`). No incluye a quien no publicó o no llegó al umbral de 3 interacciones. `er` va en puntos porcentuales (`0.63` = `0,63%`), `mvp` es `true`/`false`. Igual que el CSV de seguidores, solo se añade, nunca se sobrescribe.
 
 ## Cómo actualizar el ranking cada semana
 
-1. Abre `index.html` y sustituye los placeholders:
+1. **Primero los CSV, siempre.** Añade al final de `assets/data/historico-seguidores.csv` una fila nueva por perfil (con la fecha de esta semana) y al final de `assets/data/historico-ranking.csv` una fila por cada perfil que entró al ranking competitivo esa semana. No borres ni edites filas de semanas anteriores, solo se añade.
+2. Abre `index.html` y actualiza la sección "esta semana" con esos mismos datos que acabas de escribir en los CSV:
    - `[Nombre]`, `[X.X%]`, `[alcance]`, `[tema del post]` por los datos reales de la semana.
    - `[fecha inicio]–[fecha fin]` por el rango de fechas.
    - Los `src` de los avatares en la card MVP y en cada fila del ranking, por el archivo correspondiente en `assets/avatars/`.
-2. Rellena "Qué funcionó" y "Tip para los siguientes" con contenido concreto, no genérico.
-3. Haz commit y push a `main`. GitHub Pages redeploya automáticamente en 1-2 minutos.
-4. Redacta tú el email o mensaje de Slack avisando de la actualización, con el link a la landing (ver "Publicar en GitHub Pages" más abajo).
+3. Rellena "Qué funcionó" y "Tip para los siguientes" con contenido concreto, no genérico.
+4. No hace falta tocar `progreso.html`: al llevar más filas el CSV de seguidores, la gráfica de evolución se actualiza sola.
+5. Haz commit y push a `main`. GitHub Pages redeploya automáticamente en 1-2 minutos.
+6. Redacta tú el email o mensaje de Slack avisando de la actualización, con el link a la landing (ver "Publicar en GitHub Pages" más abajo).
 
 ## Publicar en GitHub Pages
 
