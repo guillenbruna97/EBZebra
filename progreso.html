@@ -297,7 +297,7 @@
     return campos;
   }
 
-  fetch('assets/data/historico-seguidores.csv')
+  fetch('assets/data/historico-seguidores.csv?t=' + Date.now())
     .then(function (res) { return res.text(); })
     .then(function (texto) {
       var filas = parseCSV(texto);
@@ -376,7 +376,7 @@
       document.getElementById('empty-state').style.display = 'block';
     });
 
-  fetch('assets/data/historico-mvp.csv')
+  fetch('assets/data/historico-mvp.csv?t=' + Date.now())
     .then(function (res) { return res.text(); })
     .then(function (texto) {
       var lineas = texto.trim().split('\n').filter(function (l) { return l.trim().length > 0; });
